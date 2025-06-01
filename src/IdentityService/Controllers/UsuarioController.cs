@@ -1,5 +1,6 @@
 ﻿using IdentityService.Data;
 using IdentityService.Entities;
+using IdentityService.Entities.Dto;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,9 @@ namespace IdentityService.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateUsuarioDto dto)
         {
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var usuario = new Usuario
             {
@@ -105,6 +109,19 @@ namespace IdentityService.Controllers
             return NoContent();
         }
 
+        [HttpDelete("deleteById/{id}")]
+        public async Task<IActionResult> DeleteUsuario(Guid id)
+        {
+            var usuario = await _context.Usuarios.FindAsync(id);
+
+            if (usuario == null)
+                return NotFound();
+
+            _context.Usuarios.Remove(usuario);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
 
     }
 }
