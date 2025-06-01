@@ -113,3 +113,4 @@ obj/
 riderModule.iml
 /_ReSharper.Caches
 .idea/
+docker/postgres/data/
