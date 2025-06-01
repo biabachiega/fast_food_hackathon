@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   postgres_identity:
-    image: postgres:15
+    image: postgres:latest
+    restart: always
     container_name: postgres_identity
     environment:
       POSTGRES_USER: fasttech
@@ -12,6 +13,73 @@ services:
       - "5432:5432"
     volumes:
       - ./docker/postgres/data:/var/lib/postgresql/data
+    networks:
+      - fasttech-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: fasttech_rabbitmq
+    ports:
+      - "5672:5672"   
+      - "15672:15672" 
+    networks:
+      - fasttech-network
+
+  identityapi:
+    build:
+      context: .
+      dockerfile: src/IdentityApi/Dockerfile
+    container_name: fasttech_identityapi
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres_identity;Port=5432;Database=fasttech_identity;Username=fasttech;Password=fasttech123
+    depends_on:
+      - postgres_identity
+    networks:
+      - fasttech-network
+
+  menuapi:
+    build:
+      context: .
+      dockerfile: src/MenuApi/Dockerfile
+    container_name: fasttech_menuapi
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres_identity;Port=5432;Database=fasttech_identity;Username=fasttech;Password=fasttech123
+    depends_on:
+      - postgres_identity
+    networks:
+      - fasttech-network
+
+  orderapi:
+    build:
+      context: .
+      dockerfile: src/OrderApi/Dockerfile
+    container_name: fasttech_orderapi
+    ports:
+      - "5003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMQ__HostName=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - fasttech-network
+
+  orderprocessor:
+    build:
+      context: .
+      dockerfile: src/OrderProcessor/Dockerfile
+    container_name: fasttech_orderprocessor
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMQ__HostName=rabbitmq
+    depends_on:
+      - rabbitmq
     networks:
       - fasttech-network
 

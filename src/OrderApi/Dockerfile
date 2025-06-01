@@ -9,17 +9,17 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/MenuService/MenuService.csproj", "src/MenuService/"]
-RUN dotnet restore "./src/MenuService/MenuService.csproj"
+COPY ["src/OrderApi/OrderApi.csproj", "src/OrderApi/"]
+RUN dotnet restore "./src/OrderApi/OrderApi.csproj"
 COPY . .
-WORKDIR "/src/MenuService"
-RUN dotnet build "./MenuService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/OrderApi"
+RUN dotnet build "./OrderApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./MenuService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./OrderApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MenuService.dll"]
+ENTRYPOINT ["dotnet", "OrderApi.dll"]

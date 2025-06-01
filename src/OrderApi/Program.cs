@@ -1,5 +1,4 @@
-using IdentityService.Data;
-using Microsoft.EntityFrameworkCore;
+using OrderApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,14 +9,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddSingleton<RabbitMqService>();
 
 var app = builder.Build();
-
-using var scope = app.Services.CreateScope();
-var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-db.Database.Migrate();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
