@@ -112,5 +112,26 @@ namespace MenuService.Controllers
             return NoContent();
         }
 
+        [HttpGet("filterByType")]
+        public async Task<IActionResult> GetByTipo([FromQuery] string tipo)
+        {
+            if (string.IsNullOrWhiteSpace(tipo))
+            {
+                var allProducts = await _context.Produtos.ToListAsync();
+                return Ok(allProducts);
+            }
+
+            if (!Enum.TryParse<TipoProduto>(tipo, true, out var tipoProduto))
+            {
+                return BadRequest("Tipo de produto inválido. Use: Lanche, Bebida ou Sobremesa.");
+            }
+
+            var produtosFiltrados = await _context.Produtos
+                .Where(p => p.Tipo == tipoProduto)
+                .ToListAsync();
+
+            return Ok(produtosFiltrados);
+        }
+
     }
 }
