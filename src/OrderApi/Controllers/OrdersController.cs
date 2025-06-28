@@ -24,8 +24,7 @@ namespace OrderApi.Controllers
 
             // Publica o pedido na fila RabbitMQ
             _rabbitMqService.PublishOrder(dto);
-
-            return Accepted("Pedido recebido e será processado.");
+            return Accepted(new { message = "Pedido recebido e será processado." });
         }
     }
 }

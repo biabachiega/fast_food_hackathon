@@ -21,6 +21,8 @@ namespace MenuApi.Entities
         [Required]
         public TipoProduto Tipo { get; set; }
 
+        public int Quantidade { get; set; }
+
         [Required]
         public bool Disponivel { get; set; } = true;
     }

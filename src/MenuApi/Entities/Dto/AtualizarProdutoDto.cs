@@ -7,6 +7,7 @@
         public decimal? Preco { get; set; }
         public string? Tipo { get; set; } 
         public bool? Disponivel { get; set; }
+        public int? Quantidade { get; set; }
     }
 
 }

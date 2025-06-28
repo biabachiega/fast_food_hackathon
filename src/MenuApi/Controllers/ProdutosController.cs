@@ -35,13 +35,17 @@ namespace MenuService.Controllers
             if (!Enum.TryParse<TipoProduto>(dto.Tipo, true, out var tipoProduto))
                 return BadRequest("Tipo de produto inválido. Use: Lanche, Bebida ou Sobremesa.");
 
+            if (dto.Quantidade < 1)
+                dto.Disponivel = false;
+
             var produto = new Produto
             {
                 Nome = dto.Nome,
                 Descricao = dto.Descricao,
                 Preco = dto.Preco,
                 Tipo = tipoProduto,
-                Disponivel = dto.Disponivel
+                Disponivel = dto.Disponivel,
+                Quantidade = dto.Quantidade
             };
 
             _context.Produtos.Add(produto);
@@ -73,11 +77,19 @@ namespace MenuService.Controllers
             if (produto == null)
                 return NotFound();
 
+            if (dto.Quantidade.HasValue)
+            {
+                produto.Quantidade = (int)dto.Quantidade;
+                if (dto.Quantidade < 1)
+                    dto.Disponivel = false;
+            }
+
             if (!string.IsNullOrWhiteSpace(dto.Nome))
                 produto.Nome = dto.Nome;
 
             if (!string.IsNullOrWhiteSpace(dto.Descricao))
                 produto.Descricao = dto.Descricao;
+
 
             if (dto.Preco.HasValue)
                 produto.Preco = dto.Preco.Value;

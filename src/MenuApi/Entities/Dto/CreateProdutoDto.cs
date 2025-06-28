@@ -19,5 +19,7 @@ namespace MenuApi.Entities.Dto
         public string Tipo { get; set; }
 
         public bool Disponivel { get; set; } = true;
+
+        public int Quantidade { get; set; }
     }
 }

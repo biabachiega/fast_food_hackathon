@@ -16,11 +16,12 @@ namespace OrderProcessor.Consumers
         public PedidoConsumer(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            var factory = new ConnectionFactory() { HostName = "rabbitmq" };
+            var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
+            var factory = new ConnectionFactory() { HostName = host, Port = 5672, UserName = "guest", Password = "guest" };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            _channel.QueueDeclare(queue: "pedidos",
+            _channel.QueueDeclare(queue: "pedido_queue",
                                   durable: true,
                                   exclusive: false,
                                   autoDelete: false,
@@ -43,7 +44,7 @@ namespace OrderProcessor.Consumers
                 await processor.ProcessarPedidoAsync(message);
             };
 
-            _channel.BasicConsume(queue: "pedidos",
+            _channel.BasicConsume(queue: "pedido_queue",
                                   autoAck: true,
                                   consumer: consumer);
 
