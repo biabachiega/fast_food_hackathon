@@ -13,31 +13,50 @@ namespace OrderApi.Controllers
     {
         private readonly OrderDbContext _context;
         private readonly RabbitMqService _rabbitMqService;
+        private readonly MenuService _menuService;
 
-        public OrdersController(RabbitMqService rabbitMqService)
+        public OrdersController(RabbitMqService rabbitMqService, MenuService menuService, OrderDbContext context)
         {
             _rabbitMqService = rabbitMqService;
+            _menuService = menuService;
+            _context = context;
         }
 
         [HttpPost]
         public async Task<IActionResult> CriarPedido([FromHeader] Guid clientId,[FromBody] PedidoDto dto)
         {
-            // Calcule o total
-            decimal total = dto.Itens.Sum(i => i.Quantidade * i.PrecoUnitario);
+            var itens = new List<ItemPedido>();
+            decimal total = 0;
+            var pedidoId = Guid.NewGuid();
+
+            foreach (var itemDto in dto.Itens)
+            {
+                var produto = await _menuService.GetProdutoByIdAsync(itemDto.ProdutoId);
+                if (produto == null)
+                    return BadRequest($"Produto {itemDto.ProdutoId} não encontrado no cardápio.");
+
+                var itemPedido = new ItemPedido
+                {
+                    Id = Guid.NewGuid(),
+                    PedidoId = pedidoId,
+                    Produto = produto.Nome,
+                    Quantidade = itemDto.Quantidade,
+                    PrecoUnitario = produto.Preco
+                };
+
+                itens.Add(itemPedido);
+                total += itemPedido.Quantidade * itemPedido.PrecoUnitario;
+            }
+
 
             var pedido = new Pedido
             {
-                Id = clientId,
-                Cliente = dto.Cliente,
-                Itens = dto.Itens.Select(i => new ItemPedido
-                {
-                    Id = clientId,
-                    Produto = i.Produto,
-                    Quantidade = i.Quantidade,
-                    PrecoUnitario = i.PrecoUnitario
-                }).ToList(),
+                Id = pedidoId,
+                Cliente = clientId,
+                Itens = itens,
                 Total = total,
                 Status = StatusPedido.Pendente,
+                Justificativa= string.Empty,
                 FormaEntrega = dto.FormaEntrega,
                 DataCriacao = DateTime.UtcNow
             };

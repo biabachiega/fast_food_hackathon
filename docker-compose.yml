@@ -44,8 +44,8 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"   
-      - "15672:15672" 
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - fasttech-network
 
@@ -70,10 +70,11 @@ services:
       dockerfile: src/MenuApi/Dockerfile
     container_name: fasttech_menuapi
     ports:
-      - "5002:8080"
+      - "61621:8080"
+      - "61622:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres_identity;Port=5432;Database=fasttech_identity;Username=fasttech;Password=fasttech123
+      - ConnectionStrings__DefaultConnection=Host=postgres_menu;Port=5432;Database=fasttech_menu;Username=fasttech;Password=fasttech123
     depends_on:
       - postgres_menu
     networks:

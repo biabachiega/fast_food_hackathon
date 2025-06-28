@@ -2,7 +2,6 @@
 {
     public class PedidoDto
     {
-        public string Cliente { get; set; }
         public List<ItemPedidoDto> Itens { get; set; }
         public FormaEntrega FormaEntrega { get; set; }
     }
