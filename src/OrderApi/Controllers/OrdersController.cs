@@ -4,6 +4,7 @@ using OrderApi.Data;
 using OrderApi.Entities;
 using OrderApi.Entities.Dto;
 using OrderApi.Services;
+using System.Net;
 
 namespace OrderApi.Controllers
 {
@@ -48,14 +49,13 @@ namespace OrderApi.Controllers
                 total += itemPedido.Quantidade * itemPedido.PrecoUnitario;
             }
 
-
             var pedido = new Pedido
             {
                 Id = pedidoId,
                 Cliente = clientId,
                 Itens = itens,
                 Total = total,
-                Status = StatusPedido.Pendente,
+                Status = StatusPedido.EmMontagem,
                 Justificativa= string.Empty,
                 FormaEntrega = dto.FormaEntrega,
                 DataCriacao = DateTime.UtcNow
@@ -67,12 +67,59 @@ namespace OrderApi.Controllers
             return Ok(new { pedido.Id, pedido.Total, pedido.Status });
         }
 
-        [HttpGet("pendentes")]
-        public async Task<IActionResult> GetPendentes()
+        [HttpGet("byStatus")]
+        public async Task<IActionResult> GetByStatus([FromHeader] StatusPedido status)
         {
-            var pendentes = await _context.Pedidos.Where(p => p.Status == StatusPedido.Pendente).ToListAsync();
-            return Ok(pendentes);
+            var pendentes = await _context.Pedidos.Where(p => p.Status == status).ToListAsync();
+            var todosPendentes = new List<Pedido>();
+            foreach(var item in pendentes)
+            {
+                var items = await _context.ItemPedido.Where(p => p.PedidoId == item.Id).ToListAsync();
+                todosPendentes.Add(new Pedido
+                {
+                    Id = item.Id,
+                    Cliente = item.Cliente,
+                    Itens = items,
+                    Total = item.Total,
+                    Status = item.Status,
+                    Justificativa = item.Justificativa,
+                    FormaEntrega = item.FormaEntrega,
+                    DataCriacao = item.DataCriacao
+                });
+            }
+            return Ok(todosPendentes);
         }
+
+        private static readonly Dictionary<StatusPedidoCliente, StatusPedido> StatusMap = new()
+        {
+            { StatusPedidoCliente.Pendente, StatusPedido.Pendente },
+            { StatusPedidoCliente.Cancelado, StatusPedido.Cancelado }
+        };
+
+        [HttpPut("cliente/enviarPedidoOuCancelar")]
+        public async Task<IActionResult> AceitarPedido([FromHeader]Guid id,[FromBody]StatusPedidoCliente status)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+
+            if (!StatusMap.TryGetValue(status, out var statusPedido))
+                return BadRequest("Status inválido.");
+
+            if (pedido.Status == StatusPedido.Pendente || pedido.Status == StatusPedido.EmMontagem)
+            {
+                pedido.Status = statusPedido;
+                await _context.SaveChangesAsync();
+
+                if (status == StatusPedidoCliente.Cancelado)
+                {
+                    return Ok(new { message = "Pedido cancelado com sucesso" });
+                }
+                return Ok(new { message = "Pedido enviado com sucesso" });
+
+            }
+            return BadRequest("Status do Pedido não pode ser alterado");
+        }
+
 
         [HttpPost("{id}/aceitar")]
         public async Task<IActionResult> AceitarPedido(Guid id)
