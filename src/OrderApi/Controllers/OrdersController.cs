@@ -97,7 +97,7 @@ namespace OrderApi.Controllers
         };
 
         [HttpPut("cliente/enviarPedidoOuCancelar")]
-        public async Task<IActionResult> AceitarPedido([FromHeader]Guid id,[FromBody]StatusPedidoCliente status)
+        public async Task<IActionResult> AceitarPedido([FromHeader]Guid id,[FromHeader] StatusPedidoCliente status)
         {
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound();
@@ -148,6 +148,23 @@ namespace OrderApi.Controllers
 
             return Ok(new { message = "Pedido recusado." });
         }
+
+        [HttpPut("{id}/finalizar")]
+        public async Task<IActionResult> FinalizarPedido(Guid id)
+        {
+            var pedidoRabbit = _rabbitMqService.ConsumirPedidoPorId(id);
+            if (pedidoRabbit == null)
+                return NotFound("Pedido não encontrado na fila.");
+
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+
+            pedido.Status = StatusPedido.Finalizado;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Pedido finalizado." });
+        }
+
     }
 
 }

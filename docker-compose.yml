@@ -26,7 +26,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./docker/postgres/data:/var/lib/postgresql/data/menu
+      - ./docker/postgres/data:/var/lib/postgresql/data
     networks:
       - fasttech-network
 
@@ -40,7 +40,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - ./docker/postgres/data:/var/lib/postgresql/data/order
+      - ./docker/postgres/data:/var/lib/postgresql/data
     networks:
       - fasttech-network
 
@@ -95,19 +95,7 @@ services:
       - RABBITMQ_HOST=rabbitmq
     depends_on:
       - rabbitmq
-    networks:
-      - fasttech-network
-
-  orderprocessor:
-    build:
-      context: .
-      dockerfile: src/OrderProcessor/Dockerfile
-    container_name: fasttech_orderprocessor
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - RABBITMQ_HOST=rabbitmq
-    depends_on:
-      - rabbitmq
+      - postgres_order
     networks:
       - fasttech-network
 
