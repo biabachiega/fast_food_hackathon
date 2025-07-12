@@ -75,7 +75,7 @@ jobs:
           file: src/IdentityApi/Dockerfile
           push: true
           tags: biabachiega/fasttechfood-identityapi:latest
-          
+           
       - name: Build and push MenuApi image
         uses: docker/build-push-action@v5
         with:
