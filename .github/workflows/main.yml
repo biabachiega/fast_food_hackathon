@@ -74,15 +74,15 @@ jobs:
           context: .
           file: src/IdentityApi/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-identityapi:latest
- 
+          tags: biabachiega/fasttechfood-identityapi:latest
+          
       - name: Build and push MenuApi image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: src/MenuApi/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-menuapi:latest
+          tags: biabachiega/fasttechfood-menuapi:latest
 
       - name: Build and push OrderApi image
         uses: docker/build-push-action@v5
@@ -90,4 +90,4 @@ jobs:
           context: .
           file: src/OrderApi/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
+          tags: biabachiega/fasttechfood-orderapi:latest
