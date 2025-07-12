@@ -91,3 +91,4 @@ jobs:
           file: src/OrderApi/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
+          
