@@ -164,14 +164,34 @@ namespace OrderApi.Controllers
         [HttpPost("{id}/recusar")]
         public async Task<IActionResult> RecusarPedido(Guid id, [FromBody] string justificativa)
         {
+            if (string.IsNullOrWhiteSpace(justificativa))
+            {
+                return BadRequest("Justificativa é obrigatória para recusar o pedido.");
+            }
+
+            var pedidoRabbit = _rabbitMqService.ConsumirPedidoPorId(id);
+            if (pedidoRabbit == null)
+                return NotFound("Pedido não encontrado na fila de pendentes.");
+
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound();
+
+            var itens = await _context.ItemPedido.Where(i => i.PedidoId == id).ToListAsync();
+            foreach (var item in itens)
+            {
+                var produtoAtual = await _menuService.GetProdutoByIdAsync(item.ProdutoId);
+                if (produtoAtual != null)
+                {
+                    var novoEstoque = produtoAtual.Quantidade + item.Quantidade;
+                    await _menuService.AtualizarEstoqueAsync(item.ProdutoId, novoEstoque);
+                }
+            }
 
             pedido.Status = StatusPedido.Recusado;
             pedido.Justificativa = justificativa;
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Pedido recusado." });
+            return Ok(new { message = "Pedido recusado e removido da fila.", justificativa });
         }
 
         [HttpPut("{id}/finalizar")]
