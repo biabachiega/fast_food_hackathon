@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: menuapi
+  labels:
+    app: menuapi
+    component: backend
+    service: menu
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
@@ -11,10 +16,13 @@ spec:
     metadata:
       labels:
         app: menuapi
+        component: backend
+        service: menu
+        version: v1.0.0
     spec:
       containers:
       - name: menuapi
-        image: biabachiega/fasttechfood-menuapi:latest
+        image: fasttechfood-menuapi:latest
         ports:
         - containerPort: 8080
         env:

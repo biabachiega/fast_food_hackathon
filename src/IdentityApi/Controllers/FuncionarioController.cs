@@ -36,12 +36,11 @@ namespace IdentityService.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Verifica se já existe um funcionário com o mesmo e-mail
             var emailExistente = await _context.Funcionarios
                 .AnyAsync(f => f.Email.ToLower() == dto.Email.ToLower());
 
             if (emailExistente)
-                return Conflict(new { message = "Já existe um funcionário com este e-mail." });
+                return Conflict(new { message = "Jï¿½ existe um funcionï¿½rio com este e-mail." });
 
             var funcionario = new Funcionario
             {
@@ -104,7 +103,7 @@ namespace IdentityService.Controllers
                     .AnyAsync(f => f.Email.ToLower() == dto.Email.ToLower() && f.Id != id);
 
                 if (emailUsado)
-                    return Conflict(new { message = "Já existe outro funcionário com este e-mail." });
+                    return Conflict(new { message = "Jï¿½ existe outro funcionï¿½rio com este e-mail." });
 
                 funcionario.Email = dto.Email;
             }

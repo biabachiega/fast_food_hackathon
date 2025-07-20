@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: identityapi
+  labels:
+    app: identityapi
+    component: backend
+    service: identity
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
@@ -11,10 +16,13 @@ spec:
     metadata:
       labels:
         app: identityapi
+        component: backend
+        service: identity
+        version: v1.0.0
     spec:
       containers:
       - name: identityapi
-        image: biabachiega/fasttechfood-identityapi:latest
+        image: fasttechfood-identityapi:latest
         ports:
         - containerPort: 8080
         env:

@@ -2,5 +2,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: menuapi-config
+  labels:
+    app: menuapi
+    component: backend
+    service: menu
+    type: config
+    version: v1.0.0
 data:
   ConnectionStrings__DefaultConnection: "Host=postgres-menu;Port=5432;Database=fasttech_menu;Username=fasttech;Password=fasttech123"

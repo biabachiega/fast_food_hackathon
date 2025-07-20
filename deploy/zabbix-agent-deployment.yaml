@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: zabbix-agent
+  labels:
+    app: zabbix-agent
+    component: monitoring
+    service: zabbix-agent
+    version: v7.4.0
 spec:
   replicas: 1
   selector:
@@ -11,11 +16,14 @@ spec:
     metadata:
       labels:
         app: zabbix-agent
+        component: monitoring
+        service: zabbix-agent
+        version: v7.4.0
     spec:
       serviceAccountName: zabbix-agent
       containers:
       - name: zabbix-agent
-        image: zabbix/zabbix-agent:alpine-latest
+        image: zabbix/zabbix-agent:alpine-7.4.0
         env:
         - name: ZBX_SERVER_HOST
           value: zabbix-server

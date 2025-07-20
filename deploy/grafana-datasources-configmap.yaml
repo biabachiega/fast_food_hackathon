@@ -2,6 +2,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-datasources
+  labels:
+    app: grafana
+    component: monitoring
+    type: datasources
+    version: v1.0.0
 data:
   datasources.yaml: |
     apiVersion: 1

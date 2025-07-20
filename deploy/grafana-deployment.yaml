@@ -2,6 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
+  labels:
+    app: grafana
+    component: monitoring
+    version: v10.2.3
 spec:
   replicas: 1
   selector:
@@ -11,10 +15,12 @@ spec:
     metadata:
       labels:
         app: grafana
+        component: monitoring
+        version: v10.2.3
     spec:
       containers:
       - name: grafana
-        image: grafana/grafana:latest
+        image: grafana/grafana:10.2.3
         ports:
         - containerPort: 3000
         env:

@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-order
+  labels:
+    app: postgres-order
+    component: database
+    service: order
+    version: v16.1
 spec:
   replicas: 1
   selector:
@@ -11,10 +16,13 @@ spec:
     metadata:
       labels:
         app: postgres-order
+        component: database
+        service: order
+        version: v16.1
     spec:
       containers:
       - name: postgres
-        image: postgres:16
+        image: postgres:16.1
         ports:
         - containerPort: 5432
         env:

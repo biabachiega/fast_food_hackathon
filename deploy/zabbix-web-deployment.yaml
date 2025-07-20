@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: zabbix-web
+  labels:
+    app: zabbix-web
+    component: monitoring
+    service: zabbix-web
+    version: v7.4.0
 spec:
   replicas: 1
   selector:
@@ -11,10 +16,13 @@ spec:
     metadata:
       labels:
         app: zabbix-web
+        component: monitoring
+        service: zabbix-web
+        version: v7.4.0
     spec:
       containers:
       - name: zabbix-web
-        image: zabbix/zabbix-web-nginx-pgsql:alpine-latest
+        image: zabbix/zabbix-web-nginx-pgsql:alpine-7.4.0
         ports:
         - containerPort: 8080
         env:

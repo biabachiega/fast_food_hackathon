@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: orderapi
+  labels:
+    app: orderapi
+    component: backend
+    service: order
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
@@ -11,10 +16,13 @@ spec:
     metadata:
       labels:
         app: orderapi
+        component: backend
+        service: order
+        version: v1.0.0
     spec:
       containers:
       - name: orderapi
-        image: biabachiega/fasttechfood-orderapi:latest
+        image: fasttechfood-orderapi:latest
         ports:
         - containerPort: 8080
         env:

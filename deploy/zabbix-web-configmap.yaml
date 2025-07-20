@@ -2,6 +2,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zabbix-web-config
+  labels:
+    app: zabbix-web
+    component: monitoring
+    service: zabbix-web
+    type: config
+    version: v7.4.0
 data:
   maintenance.inc.php: |
     <?php

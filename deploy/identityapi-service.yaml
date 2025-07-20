@@ -2,6 +2,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: identityapi-service
+  labels:
+    app: identityapi
+    component: backend
+    service: identity
+    type: service
+    version: v1.0.0
 spec:
   selector:
     app: identityapi

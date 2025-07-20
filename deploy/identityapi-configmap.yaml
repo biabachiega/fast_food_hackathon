@@ -2,5 +2,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: identityapi-config
+  labels:
+    app: identityapi
+    component: backend
+    service: identity
+    type: config
+    version: v1.0.0
 data:
   ConnectionStrings__DefaultConnection: "Host=postgres-identity;Port=5432;Database=fasttech_identity;Username=fasttech;Password=fasttech123"

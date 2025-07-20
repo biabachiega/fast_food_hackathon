@@ -24,7 +24,6 @@ public class RequestMetricsMiddleware
         
         stopwatch.Stop();
 
-        // Reportar métricas ao MonitoringAPI
         _ = Task.Run(async () =>
         {
             try
@@ -33,7 +32,6 @@ public class RequestMetricsMiddleware
             }
             catch (Exception ex)
             {
-                // Log error but don't affect main request
                 Console.WriteLine($"Error reporting metrics: {ex.Message}");
             }
         });

@@ -2,7 +2,6 @@
 {
     public enum StatusPedido
     {
-        EmMontagem,
         Pendente,
         Aceito,
         Recusado,

@@ -32,7 +32,6 @@ namespace OrderApi.Services
         {
             try
             {
-                // Se a quantidade for maior que 0, marcar como disponível
                 var updateDto = new { 
                     Quantidade = novaQuantidade,
                     Disponivel = novaQuantidade > 0

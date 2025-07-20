@@ -4,7 +4,7 @@
     {
         public Guid Id { get; set; }
         public Guid PedidoId { get; set; }
-        public Guid ProdutoId { get; set; } // Adicionado para controle de estoque
+        public Guid ProdutoId { get; set; }
         public string Produto { get; set; }
         public int Quantidade { get; set; }
         public decimal PrecoUnitario { get; set; }

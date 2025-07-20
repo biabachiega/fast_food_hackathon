@@ -2,6 +2,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zabbix-server-config
+  labels:
+    app: zabbix-server
+    component: monitoring
+    service: zabbix-server
+    type: config
+    version: v7.4.0
 data:
   zabbix_server.conf: |
     LogFile=/var/log/zabbix/zabbix_server.log

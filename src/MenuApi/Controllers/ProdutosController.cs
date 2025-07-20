@@ -80,8 +80,6 @@ namespace MenuService.Controllers
             if (dto.Quantidade.HasValue)
             {
                 produto.Quantidade = (int)dto.Quantidade;
-                // Se não foi enviado um valor específico para Disponivel, 
-                // determinar automaticamente baseado na quantidade
                 if (!dto.Disponivel.HasValue)
                 {
                     produto.Disponivel = dto.Quantidade >= 1;

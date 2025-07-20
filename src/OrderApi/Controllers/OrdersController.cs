@@ -30,7 +30,6 @@ namespace OrderApi.Controllers
             decimal total = 0;
             var pedidoId = Guid.NewGuid();
 
-            // Primeiro, verificar se todos os produtos existem e têm estoque suficiente
             foreach (var itemDto in dto.Itens)
             {
                 var produto = await _menuService.GetProdutoByIdAsync(itemDto.ProdutoId);
@@ -44,8 +43,6 @@ namespace OrderApi.Controllers
                     return BadRequest($"Estoque insuficiente para '{produto.Nome}'. Disponível: {produto.Quantidade}, Solicitado: {itemDto.Quantidade}");
             }
 
-            // Se chegou até aqui, todos os produtos têm estoque suficiente
-            // Agora vamos criar o pedido e atualizar o estoque
             foreach (var itemDto in dto.Itens)
             {
                 var produto = await _menuService.GetProdutoByIdAsync(itemDto.ProdutoId);
@@ -54,7 +51,7 @@ namespace OrderApi.Controllers
                 {
                     Id = Guid.NewGuid(),
                     PedidoId = pedidoId,
-                    ProdutoId = itemDto.ProdutoId, // Armazenar o ID do produto
+                    ProdutoId = itemDto.ProdutoId, 
                     Produto = produto.Nome,
                     Quantidade = itemDto.Quantidade,
                     PrecoUnitario = produto.Preco
@@ -63,7 +60,6 @@ namespace OrderApi.Controllers
                 itens.Add(itemPedido);
                 total += itemPedido.Quantidade * itemPedido.PrecoUnitario;
 
-                // Atualizar estoque no MenuAPI
                 var novoEstoque = produto.Quantidade - itemDto.Quantidade;
                 var estoqueAtualizado = await _menuService.AtualizarEstoqueAsync(itemDto.ProdutoId, novoEstoque);
                 
@@ -88,7 +84,6 @@ namespace OrderApi.Controllers
             _context.Pedidos.Add(pedido);
             await _context.SaveChangesAsync();
 
-            // Publica direto na fila "pending_orders"
             _rabbitMqService.PublishOrder(pedido);
 
             return Ok(new { pedido.Id, pedido.Total, pedido.Status });
@@ -120,13 +115,11 @@ namespace OrderApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> RemoverPedido(Guid id, [FromBody] string justificativa)
         {
-            // Validar se justificativa foi fornecida
             if (string.IsNullOrWhiteSpace(justificativa))
             {
                 return BadRequest("Justificativa é obrigatória para cancelar o pedido.");
             }
 
-            // 1. Tenta remover da fila "pending_orders"
             var pedidoRabbit = _rabbitMqService.ConsumirPedidoPorId(id);
             
             if (pedidoRabbit == null)
@@ -134,19 +127,15 @@ namespace OrderApi.Controllers
                 return BadRequest("Pedido não pode ser cancelado. Não está na fila de pendentes (pode já ter sido aceito ou processado).");
             }
 
-            // 2. Se estava na fila, atualiza status no banco para cancelado
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound("Pedido não encontrado no banco de dados.");
 
-            // 3. Reverter estoque dos produtos
             var itens = await _context.ItemPedido.Where(i => i.PedidoId == id).ToListAsync();
             foreach (var item in itens)
             {
-                // Buscar o produto atual no MenuAPI
                 var produtoAtual = await _menuService.GetProdutoByIdAsync(item.ProdutoId);
                 if (produtoAtual != null)
                 {
-                    // Reverter a quantidade ao estoque
                     var novoEstoque = produtoAtual.Quantidade + item.Quantidade;
                     await _menuService.AtualizarEstoqueAsync(item.ProdutoId, novoEstoque);
                 }
@@ -162,19 +151,16 @@ namespace OrderApi.Controllers
         [HttpPost("{id}/aceitar")]
         public async Task<IActionResult> AceitarPedido(Guid id)
         {
-            // 1. Consome da fila "pending_orders"
             var pedidoRabbit = _rabbitMqService.ConsumirPedidoPorId(id);
             if (pedidoRabbit == null)
                 return NotFound("Pedido não encontrado na fila de pendentes.");
 
-            // 2. Atualiza status no banco
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound();
 
             pedido.Status = StatusPedido.Aceito;
             await _context.SaveChangesAsync();
 
-            // 3. Publica na nova fila "accepted_orders" 
             _rabbitMqService.PublishAcceptedOrder(pedido);
 
             return Ok(new { message = "Pedido aceito e enviado para preparo." });
@@ -196,20 +182,16 @@ namespace OrderApi.Controllers
         [HttpPut("{id}/finalizar")]
         public async Task<IActionResult> FinalizarPedido(Guid id)
         {
-            // 1. Consome da fila "accepted_orders" (pedidos aceitos)
             var pedidoRabbit = _rabbitMqService.ConsumirPedidoAceitoPorId(id);
             if (pedidoRabbit == null)
                 return NotFound("Pedido não encontrado na fila de aceitos.");
 
-            // 2. Atualiza status no banco
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound();
 
             pedido.Status = StatusPedido.Finalizado;
             await _context.SaveChangesAsync();
 
-            // 3. Pedido finalizado - removido da fila "accepted_orders"
-            
             return Ok(new { message = "Pedido finalizado." });
         }
 
