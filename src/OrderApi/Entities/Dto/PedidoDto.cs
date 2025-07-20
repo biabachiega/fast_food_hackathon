@@ -2,7 +2,7 @@
 {
     public class PedidoDto
     {
-        public List<ItemPedidoDto> Itens { get; set; }
+        public required List<ItemPedidoDto> Itens { get; set; }
         public FormaEntrega FormaEntrega { get; set; }
     }
 }

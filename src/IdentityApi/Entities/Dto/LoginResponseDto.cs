@@ -2,9 +2,9 @@
 {
     public class LoginResponseDto
     {
-        public string Tipo { get; set; } // "Funcionario" ou "Usuario"
+        public required string Tipo { get; set; } 
         public Guid Id { get; set; }
-        public string Nome { get; set; }
+        public required string Nome { get; set; }
     }
 
 }

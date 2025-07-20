@@ -2,8 +2,8 @@
 {
     public class LoginRequestDto
     {
-        public string EmailOuCpf { get; set; }
-        public string Senha { get; set; }
+        public required string EmailOuCpf { get; set; }
+        public required string Senha { get; set; }
     }
 
 }

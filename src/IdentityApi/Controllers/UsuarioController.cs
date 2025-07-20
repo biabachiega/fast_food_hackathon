@@ -42,9 +42,8 @@ namespace IdentityService.Controllers
                 Cpf = dto.Cpf,
                 Endereco = dto.Endereco,
                 Telefone = dto.Telefone,
+                SenhaHash = _passwordHasher.HashPassword(new Usuario { Nome = dto.Nome, Email = dto.Email, Cpf = dto.Cpf, Endereco = dto.Endereco, Telefone = dto.Telefone, SenhaHash = "" }, dto.Senha)
             };
-
-            usuario.SenhaHash = _passwordHasher.HashPassword(usuario, dto.Senha);
 
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();

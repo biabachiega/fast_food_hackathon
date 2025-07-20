@@ -41,12 +41,7 @@ namespace OrderApi.Controllers
 
                 if (produto.Quantidade < itemDto.Quantidade)
                     return BadRequest($"Estoque insuficiente para '{produto.Nome}'. Disponível: {produto.Quantidade}, Solicitado: {itemDto.Quantidade}");
-            }
 
-            foreach (var itemDto in dto.Itens)
-            {
-                var produto = await _menuService.GetProdutoByIdAsync(itemDto.ProdutoId);
-                
                 var itemPedido = new ItemPedido
                 {
                     Id = Guid.NewGuid(),

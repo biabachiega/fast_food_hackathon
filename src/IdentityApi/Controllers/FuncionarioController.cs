@@ -46,10 +46,9 @@ namespace IdentityService.Controllers
             {
                 Nome = dto.Nome,
                 Cargo = dto.Cargo,
-                Email = dto.Email
+                Email = dto.Email,
+                SenhaHash = _passwordHasher.HashPassword(new Funcionario { Nome = dto.Nome, Cargo = dto.Cargo, Email = dto.Email, SenhaHash = "" }, dto.Senha)
             };
-
-            funcionario.SenhaHash = _passwordHasher.HashPassword(funcionario, dto.Senha);
 
             _context.Funcionarios.Add(funcionario);
             await _context.SaveChangesAsync();

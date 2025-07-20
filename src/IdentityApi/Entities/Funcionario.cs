@@ -9,18 +9,18 @@ namespace IdentityService.Entities
 
         [Required]
         [MaxLength(100)]
-        public string Nome { get; set; }
+        public required string Nome { get; set; }
 
         [Required]
         [MaxLength(50)]
-        public string Cargo { get; set; }
+        public required string Cargo { get; set; }
 
         [Required]
         [MaxLength(100)]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         [Required]
-        public string SenhaHash { get; set; }
+        public required string SenhaHash { get; set; }
     }
 
 }

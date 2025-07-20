@@ -110,8 +110,6 @@ namespace OrderApi.Services
                 }
                 throw;
             }
-
-            return null;
         }
 
         public void Dispose()
