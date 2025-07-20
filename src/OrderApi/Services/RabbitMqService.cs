@@ -23,7 +23,44 @@ namespace OrderApi.Services
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            _channel.QueueDeclare(queue: "pedido_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
+            // Declara as duas novas filas
+            _channel.QueueDeclare(queue: "pending_orders", durable: true, exclusive: false, autoDelete: false, arguments: null);
+            _channel.QueueDeclare(queue: "accepted_orders", durable: true, exclusive: false, autoDelete: false, arguments: null);
+            
+            // Migra dados da fila antiga para a nova
+            MigrateOldQueueToPendingOrders();
+        }
+
+        private void MigrateOldQueueToPendingOrders()
+        {
+            try
+            {
+                // Verifica se a fila antiga existe e tem dados
+                var queueInfo = _channel.QueueDeclarePassive("pedido_queue");
+                
+                // Se tem mensagens, migra todas para pending_orders
+                while (queueInfo.MessageCount > 0)
+                {
+                    var result = _channel.BasicGet(queue: "pedido_queue", autoAck: true);
+                    if (result != null)
+                    {
+                        // Re-publica na nova fila pending_orders
+                        var properties = _channel.CreateBasicProperties();
+                        properties.Persistent = true;
+                        _channel.BasicPublish(exchange: "", routingKey: "pending_orders", basicProperties: properties, body: result.Body);
+                        
+                        queueInfo = _channel.QueueDeclarePassive("pedido_queue");
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+                // Se a fila pedido_queue não existe, não faz nada
+            }
         }
 
         public void PublishOrder(object order)
@@ -34,17 +71,40 @@ namespace OrderApi.Services
             var properties = _channel.CreateBasicProperties();
             properties.Persistent = true;
 
-            _channel.BasicPublish(exchange: "", routingKey: "pedido_queue", basicProperties: properties, body: body);
+            // Publica na fila "pending_orders" (pedidos confirmados pelo cliente)
+            _channel.BasicPublish(exchange: "", routingKey: "pending_orders", basicProperties: properties, body: body);
+        }
+
+        public void PublishAcceptedOrder(object order)
+        {
+            var json = JsonSerializer.Serialize(order);
+            var body = Encoding.UTF8.GetBytes(json);
+
+            var properties = _channel.CreateBasicProperties();
+            properties.Persistent = true;
+
+            // Publica na fila "accepted_orders" (pedidos aceitos pela cozinha)
+            _channel.BasicPublish(exchange: "", routingKey: "accepted_orders", basicProperties: properties, body: body);
         }
 
         public Pedido? ConsumirPedidoPorId(Guid id)
+        {
+            return ConsumirPedidoPorIdDaFila(id, "pending_orders");
+        }
+
+        public Pedido? ConsumirPedidoAceitoPorId(Guid id)
+        {
+            return ConsumirPedidoPorIdDaFila(id, "accepted_orders");
+        }
+
+        private Pedido? ConsumirPedidoPorIdDaFila(Guid id, string queueName)
         {
             BasicGetResult result;
             int maxTries = 100; // Limite para evitar loop infinito
 
             for (int i = 0; i < maxTries; i++)
             {
-                result = _channel.BasicGet(queue: "pedido_queue", autoAck: false);
+                result = _channel.BasicGet(queue: queueName, autoAck: false);
 
                 if (result == null)
                     return null; // Nenhuma mensagem na fila

@@ -4,9 +4,9 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY src/OrderApi/OrderApi.csproj ./OrderApi/
+COPY OrderApi.csproj ./OrderApi/
 RUN dotnet restore ./OrderApi/OrderApi.csproj
-COPY src/OrderApi/. ./OrderApi/
+COPY . ./OrderApi/
 WORKDIR /src/OrderApi
 RUN dotnet build OrderApi.csproj -c Release -o /app/build
 

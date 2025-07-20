@@ -34,7 +34,7 @@ namespace OrderApi.Controllers
             {
                 var produto = await _menuService.GetProdutoByIdAsync(itemDto.ProdutoId);
                 if (produto == null)
-                    return BadRequest($"Produto {itemDto.ProdutoId} n„o encontrado no card·pio.");
+                    return BadRequest($"Produto {itemDto.ProdutoId} nÔøΩo encontrado no cardÔøΩpio.");
 
                 var itemPedido = new ItemPedido
                 {
@@ -55,7 +55,7 @@ namespace OrderApi.Controllers
                 Cliente = clientId,
                 Itens = itens,
                 Total = total,
-                Status = StatusPedido.EmMontagem,
+                Status = StatusPedido.Pendente,
                 Justificativa= string.Empty,
                 FormaEntrega = dto.FormaEntrega,
                 DataCriacao = DateTime.UtcNow
@@ -63,6 +63,9 @@ namespace OrderApi.Controllers
 
             _context.Pedidos.Add(pedido);
             await _context.SaveChangesAsync();
+
+            // Publica direto na fila "pending_orders"
+            _rabbitMqService.PublishOrder(pedido);
 
             return Ok(new { pedido.Id, pedido.Total, pedido.Status });
         }
@@ -90,48 +93,51 @@ namespace OrderApi.Controllers
             return Ok(todosPendentes);
         }
 
-        private static readonly Dictionary<StatusPedidoCliente, StatusPedido> StatusMap = new()
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> RemoverPedido(Guid id, [FromBody] string justificativa)
         {
-            { StatusPedidoCliente.Pendente, StatusPedido.Pendente },
-            { StatusPedidoCliente.Cancelado, StatusPedido.Cancelado }
-        };
-
-        [HttpPut("cliente/enviarPedidoOuCancelar")]
-        public async Task<IActionResult> AceitarPedido([FromHeader]Guid id,[FromHeader] StatusPedidoCliente status)
-        {
-            var pedido = await _context.Pedidos.FindAsync(id);
-            if (pedido == null) return NotFound();
-
-            if (!StatusMap.TryGetValue(status, out var statusPedido))
-                return BadRequest("Status inv·lido.");
-
-            if (pedido.Status == StatusPedido.Pendente || pedido.Status == StatusPedido.EmMontagem)
+            // Validar se justificativa foi fornecida
+            if (string.IsNullOrWhiteSpace(justificativa))
             {
-                pedido.Status = statusPedido;
-                await _context.SaveChangesAsync();
-
-                if (status == StatusPedidoCliente.Cancelado)
-                {
-                    return Ok(new { message = "Pedido cancelado com sucesso" });
-                }
-                return Ok(new { message = "Pedido enviado com sucesso" });
-
+                return BadRequest("Justificativa √© obrigat√≥ria para cancelar o pedido.");
             }
-            return BadRequest("Status do Pedido n„o pode ser alterado");
-        }
 
+            // 1. Tenta remover da fila "pending_orders"
+            var pedidoRabbit = _rabbitMqService.ConsumirPedidoPorId(id);
+            
+            if (pedidoRabbit == null)
+            {
+                return BadRequest("Pedido n√£o pode ser cancelado. N√£o est√° na fila de pendentes (pode j√° ter sido aceito ou processado).");
+            }
+
+            // 2. Se estava na fila, atualiza status no banco para cancelado
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound("Pedido n√£o encontrado no banco de dados.");
+
+            pedido.Status = StatusPedido.Cancelado;
+            pedido.Justificativa = justificativa;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Pedido removido da fila e cancelado com sucesso.", justificativa });
+        }
 
         [HttpPost("{id}/aceitar")]
         public async Task<IActionResult> AceitarPedido(Guid id)
         {
+            // 1. Consome da fila "pending_orders"
+            var pedidoRabbit = _rabbitMqService.ConsumirPedidoPorId(id);
+            if (pedidoRabbit == null)
+                return NotFound("Pedido n√£o encontrado na fila de pendentes.");
+
+            // 2. Atualiza status no banco
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound();
 
             pedido.Status = StatusPedido.Aceito;
             await _context.SaveChangesAsync();
 
-            // Agora sim, publique na fila do RabbitMQ
-            _rabbitMqService.PublishOrder(pedido);
+            // 3. Publica na nova fila "accepted_orders" 
+            _rabbitMqService.PublishAcceptedOrder(pedido);
 
             return Ok(new { message = "Pedido aceito e enviado para preparo." });
         }
@@ -152,16 +158,20 @@ namespace OrderApi.Controllers
         [HttpPut("{id}/finalizar")]
         public async Task<IActionResult> FinalizarPedido(Guid id)
         {
-            var pedidoRabbit = _rabbitMqService.ConsumirPedidoPorId(id);
+            // 1. Consome da fila "accepted_orders" (pedidos aceitos)
+            var pedidoRabbit = _rabbitMqService.ConsumirPedidoAceitoPorId(id);
             if (pedidoRabbit == null)
-                return NotFound("Pedido n„o encontrado na fila.");
+                return NotFound("Pedido n√£o encontrado na fila de aceitos.");
 
+            // 2. Atualiza status no banco
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound();
 
             pedido.Status = StatusPedido.Finalizado;
             await _context.SaveChangesAsync();
 
+            // 3. Pedido finalizado - removido da fila "accepted_orders"
+            
             return Ok(new { message = "Pedido finalizado." });
         }
 
