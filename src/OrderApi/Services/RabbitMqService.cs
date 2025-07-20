@@ -23,44 +23,9 @@ namespace OrderApi.Services
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            // Declara as duas novas filas
+            // Declara as duas filas para o fluxo de pedidos
             _channel.QueueDeclare(queue: "pending_orders", durable: true, exclusive: false, autoDelete: false, arguments: null);
             _channel.QueueDeclare(queue: "accepted_orders", durable: true, exclusive: false, autoDelete: false, arguments: null);
-            
-            // Migra dados da fila antiga para a nova
-            MigrateOldQueueToPendingOrders();
-        }
-
-        private void MigrateOldQueueToPendingOrders()
-        {
-            try
-            {
-                // Verifica se a fila antiga existe e tem dados
-                var queueInfo = _channel.QueueDeclarePassive("pedido_queue");
-                
-                // Se tem mensagens, migra todas para pending_orders
-                while (queueInfo.MessageCount > 0)
-                {
-                    var result = _channel.BasicGet(queue: "pedido_queue", autoAck: true);
-                    if (result != null)
-                    {
-                        // Re-publica na nova fila pending_orders
-                        var properties = _channel.CreateBasicProperties();
-                        properties.Persistent = true;
-                        _channel.BasicPublish(exchange: "", routingKey: "pending_orders", basicProperties: properties, body: result.Body);
-                        
-                        queueInfo = _channel.QueueDeclarePassive("pedido_queue");
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
-            catch
-            {
-                // Se a fila pedido_queue não existe, não faz nada
-            }
         }
 
         public void PublishOrder(object order)
