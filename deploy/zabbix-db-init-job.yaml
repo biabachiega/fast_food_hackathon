@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: zabbix-db-init
+spec:
+  template:
+    spec:
+      containers:
+      - name: zabbix-db-init
+        image: zabbix/zabbix-server-pgsql:alpine-latest
+        command: ['sh', '-c']
+        args:
+        - |
+          echo "Aguardando PostgreSQL..."
+          until pg_isready -h postgres-zabbix -p 5432; do
+            echo "PostgreSQL não está pronto, aguardando..."
+            sleep 2
+          done
+          echo "PostgreSQL está pronto, verificando schema..."
+          
+          # Verificar se o schema já existe
+          TABLES=$(PGPASSWORD=zabbix psql -h postgres-zabbix -U zabbix -d zabbix -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'config';")
+          
+          if [ "$TABLES" -eq "0" ]; then
+            echo "Schema não existe, criando..."
+            # Usar o schema SQL do próprio container do Zabbix
+            PGPASSWORD=zabbix psql -h postgres-zabbix -U zabbix -d zabbix < /usr/share/doc/zabbix-server-postgresql/create.sql.gz
+            echo "Schema criado com sucesso!"
+          else
+            echo "Schema já existe, pulando inicialização."
+          fi
+        env:
+        - name: PGPASSWORD
+          value: zabbix
+      restartPolicy: OnFailure

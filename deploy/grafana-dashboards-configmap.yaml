@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+data:
+  microservices-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "FastTechFood Microservices Monitor",
+        "tags": ["microservices", "zabbix"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Memory Usage by Service",
+            "type": "stat",
+            "targets": [
+              {
+                "application": {"filter": ""},
+                "functions": [],
+                "group": {"filter": "Microservices"},
+                "host": {"filter": "microservices"},
+                "item": {"filter": "Memory Usage"},
+                "mode": 0,
+                "options": {
+                  "showDisabledItems": false,
+                  "skipEmptyValues": false
+                },
+                "refId": "A"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "fieldConfig": {
+              "defaults": {
+                "unit": "MB",
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "red", "value": 500}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Service Health Status",
+            "type": "stat",
+            "targets": [
+              {
+                "application": {"filter": ""},
+                "functions": [],
+                "group": {"filter": "Microservices"},
+                "host": {"filter": "microservices"},
+                "item": {"filter": "Health"},
+                "mode": 0,
+                "options": {
+                  "showDisabledItems": false,
+                  "skipEmptyValues": false
+                },
+                "refId": "B"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": null},
+                    {"color": "green", "value": 200}
+                  ]
+                },
+                "mappings": [
+                  {"options": {"200": {"text": "Healthy"}}, "type": "value"},
+                  {"options": {"from": 400, "to": 599, "result": {"text": "Unhealthy"}}, "type": "range"}
+                ]
+              }
+            }
+          },
+          {
+            "id": 3,
+            "title": "CPU Time Trend",
+            "type": "timeseries",
+            "targets": [
+              {
+                "application": {"filter": ""},
+                "functions": [],
+                "group": {"filter": "Microservices"},
+                "host": {"filter": "microservices"},
+                "item": {"filter": "CPU Time"},
+                "mode": 0,
+                "options": {
+                  "showDisabledItems": false,
+                  "skipEmptyValues": false
+                },
+                "refId": "C"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8},
+            "fieldConfig": {
+              "defaults": {
+                "unit": "ms"
+              }
+            }
+          },
+          {
+            "id": 4,
+            "title": "Thread Count by Service", 
+            "type": "timeseries",
+            "targets": [
+              {
+                "application": {"filter": ""},
+                "functions": [],
+                "group": {"filter": "Microservices"},
+                "host": {"filter": "microservices"},
+                "item": {"filter": "Thread Count"},
+                "mode": 0,
+                "options": {
+                  "showDisabledItems": false,
+                  "skipEmptyValues": false
+                },
+                "refId": "D"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+          }
+        ],
+        "time": {"from": "now-1h", "to": "now"},
+        "refresh": "30s",
+        "schemaVersion": 30,
+        "version": 1
+      }
+    }

@@ -1,0 +1,138 @@
+{
+  "zabbix_export": {
+    "version": "6.0",
+    "date": "2024-01-01T00:00:00Z",
+    "groups": [
+      {
+        "uuid": "846977d1-f245-4e1d-b8e4-8b9e6c9e9e9e",
+        "name": "Microservices"
+      }
+    ],
+    "templates": [
+      {
+        "uuid": "550e8400-e29b-41d4-a716-446655440001",
+        "template": "FastTechFood Microservices",
+        "name": "FastTechFood Microservices Template",
+        "groups": [
+          {
+            "name": "Microservices"
+          }
+        ],
+        "items": [
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440101",
+            "name": "IdentityAPI Memory Usage",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.metric[identityapi,memory_usage_mb]",
+            "delay": "60s",
+            "units": "MB",
+            "description": "Memory usage of IdentityAPI service"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440102",
+            "name": "IdentityAPI CPU Time",
+            "type": "ZABBIX_ACTIVE", 
+            "key": "microservice.metric[identityapi,cpu_time_ms]",
+            "delay": "60s",
+            "units": "ms",
+            "description": "CPU time of IdentityAPI service"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440103",
+            "name": "IdentityAPI Thread Count",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.metric[identityapi,thread_count]",
+            "delay": "60s",
+            "description": "Thread count of IdentityAPI service"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440104",
+            "name": "IdentityAPI Health",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.health[identityapi]",
+            "delay": "30s",
+            "description": "Health check response code for IdentityAPI"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440201",
+            "name": "MenuAPI Memory Usage",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.metric[menuapi,memory_usage_mb]",
+            "delay": "60s",
+            "units": "MB",
+            "description": "Memory usage of MenuAPI service"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440202",
+            "name": "MenuAPI CPU Time",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.metric[menuapi,cpu_time_ms]",
+            "delay": "60s",
+            "units": "ms",
+            "description": "CPU time of MenuAPI service"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440203",
+            "name": "MenuAPI Thread Count",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.metric[menuapi,thread_count]",
+            "delay": "60s",
+            "description": "Thread count of MenuAPI service"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440204",
+            "name": "MenuAPI Health",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.health[menuapi]",
+            "delay": "30s",
+            "description": "Health check response code for MenuAPI"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440301",
+            "name": "OrderAPI Memory Usage",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.metric[orderapi,memory_usage_mb]",
+            "delay": "60s",
+            "units": "MB",
+            "description": "Memory usage of OrderAPI service"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440302",
+            "name": "OrderAPI CPU Time",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.metric[orderapi,cpu_time_ms]",
+            "delay": "60s",
+            "units": "ms",
+            "description": "CPU time of OrderAPI service"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440303",
+            "name": "OrderAPI Thread Count",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.metric[orderapi,thread_count]",
+            "delay": "60s",
+            "description": "Thread count of OrderAPI service"
+          },
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440304",
+            "name": "OrderAPI Health",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.health[orderapi]",
+            "delay": "30s",
+            "description": "Health check response code for OrderAPI"
+          }
+        ],
+        "discovery_rules": [
+          {
+            "uuid": "550e8400-e29b-41d4-a716-446655440401",
+            "name": "Microservice Discovery",
+            "type": "ZABBIX_ACTIVE",
+            "key": "microservice.discovery",
+            "delay": "3600s",
+            "description": "Auto-discovery of microservices"
+          }
+        ]
+      }
+    ]
+  }
+}

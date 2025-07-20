@@ -113,6 +113,6 @@ obj/
 riderModule.iml
 /_ReSharper.Caches
 .idea/
-docker/postgres/data/
+docker/postgres/
 docker/zabbix/
 docker/grafana/

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-zabbix
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-zabbix
+  template:
+    metadata:
+      labels:
+        app: postgres-zabbix
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        env:
+        - name: POSTGRES_DB
+          value: zabbix
+        - name: POSTGRES_USER
+          value: zabbix
+        - name: POSTGRES_PASSWORD
+          value: zabbix
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-zabbix-pvc-hostpath

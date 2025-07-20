@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zabbix-monitor-scripts
+data:
+  zabbix_agentd.conf: |
+    LogFile=/tmp/zabbix_agentd.log
+    LogFileSize=10
+    Server=0.0.0.0/0
+    ServerActive=zabbix-server:10051
+    Hostname=microservices
+    RefreshActiveChecks=120
+    BufferSend=5
+    BufferSize=100
+    MaxLinesPerSecond=20
+    Timeout=3
+    AllowRoot=1
+    UnsafeUserParameters=1
+    ListenPort=10050
+    ListenIP=0.0.0.0
+    
+    # UserParameters básicos para sistema
+    UserParameter=system.cpu.util,cat /host/proc/loadavg | awk '{print $1}'
+    UserParameter=vm.memory.total,cat /host/proc/meminfo | grep MemTotal | awk '{print $2*1024}'
+    UserParameter=vm.memory.available,cat /host/proc/meminfo | grep MemAvailable | awk '{print $2*1024}'
+    UserParameter=vfs.fs.size.total,df -B1 / | tail -1 | awk '{print $2}'
+    UserParameter=vfs.fs.size.used,df -B1 / | tail -1 | awk '{print $3}'
+    
+    # UserParameters para health checks das APIs
+    UserParameter=identityapi.health,curl -s -o /dev/null -w "%{http_code}" http://identityapi-service:8080/health | grep -c "200"
+    UserParameter=identityapi.response_time,curl -o /dev/null -s -w "%{time_total}" http://identityapi-service:8080/health
+    UserParameter=menuapi.health,curl -s -o /dev/null -w "%{http_code}" http://menuapi-service:8080/health | grep -c "200"
+    UserParameter=menuapi.response_time,curl -o /dev/null -s -w "%{time_total}" http://menuapi-service:8080/health
+    UserParameter=orderapi.health,curl -s -o /dev/null -w "%{http_code}" http://orderapi-service:8080/health | grep -c "200"
+    UserParameter=orderapi.response_time,curl -o /dev/null -s -w "%{time_total}" http://orderapi-service:8080/health
+    
+    # UserParameters para endpoints específicos
+    UserParameter=identityapi.usuarios,curl -s -o /dev/null -w "%{http_code}" http://identityapi-service:8080/api/Usuario | grep -c "200"
+    UserParameter=menuapi.cardapio,curl -s -o /dev/null -w "%{http_code}" http://menuapi-service:8080/api/CardapioItem | grep -c "200"
+    UserParameter=orderapi.pedidos,curl -s -o /dev/null -w "%{http_code}" http://orderapi-service:8080/api/Pedido | grep -c "200"

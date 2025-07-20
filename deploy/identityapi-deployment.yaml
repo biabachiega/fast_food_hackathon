@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identityapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identityapi
+  template:
+    metadata:
+      labels:
+        app: identityapi
+    spec:
+      containers:
+      - name: identityapi
+        image: biabachiega/fasttechfood-identityapi:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            configMapKeyRef:
+              name: identityapi-config
+              key: ConnectionStrings__DefaultConnection
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10

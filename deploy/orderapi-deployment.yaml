@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orderapi
+  template:
+    metadata:
+      labels:
+        app: orderapi
+    spec:
+      containers:
+      - name: orderapi
+        image: biabachiega/fasttechfood-orderapi:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            configMapKeyRef:
+              name: orderapi-config
+              key: ConnectionStrings__DefaultConnection
+        - name: RABBITMQ_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: orderapi-config
+              key: RABBITMQ_HOST
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10

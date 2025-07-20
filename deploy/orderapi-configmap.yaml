@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orderapi-config
+data:
+  ConnectionStrings__DefaultConnection: "Host=postgres-order;Port=5432;Database=fasttech_order;Username=fasttech;Password=fasttech123"
+  RABBITMQ_HOST: "rabbitmq"

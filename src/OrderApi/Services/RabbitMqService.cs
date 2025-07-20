@@ -17,8 +17,8 @@ namespace OrderApi.Services
             var factory = new ConnectionFactory()
             {
                 HostName = "rabbitmq",
-                UserName = "guest",
-                Password = "guest"
+                UserName = "fasttech",
+                Password = "fasttech123"
             };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();

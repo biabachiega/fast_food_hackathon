@@ -12,7 +12,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./docker/postgres/data:/var/lib/postgresql/data
+      - ./docker/postgres/identity_data:/var/lib/postgresql/data
     networks:
       - fasttech-network
 
@@ -26,7 +26,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./docker/postgres/data:/var/lib/postgresql/data
+      - ./docker/postgres/menu_data:/var/lib/postgresql/data
     networks:
       - fasttech-network
 
@@ -40,7 +40,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - ./docker/postgres/data:/var/lib/postgresql/data
+      - ./docker/postgres/order_data:/var/lib/postgresql/data
     networks:
       - fasttech-network
 
@@ -92,6 +92,7 @@ services:
       - "5003:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres_order;Port=5432;Database=fasttech_order;Username=fasttech;Password=fasttech123
       - RABBITMQ_HOST=rabbitmq
     depends_on:
       - rabbitmq

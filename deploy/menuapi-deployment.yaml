@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: menuapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: menuapi
+  template:
+    metadata:
+      labels:
+        app: menuapi
+    spec:
+      containers:
+      - name: menuapi
+        image: biabachiega/fasttechfood-menuapi:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            configMapKeyRef:
+              name: menuapi-config
+              key: ConnectionStrings__DefaultConnection
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10

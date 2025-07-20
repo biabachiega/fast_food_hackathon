@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zabbix-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zabbix-agent
+  template:
+    metadata:
+      labels:
+        app: zabbix-agent
+    spec:
+      serviceAccountName: zabbix-agent
+      containers:
+      - name: zabbix-agent
+        image: zabbix/zabbix-agent:alpine-latest
+        env:
+        - name: ZBX_SERVER_HOST
+          value: zabbix-server
+        - name: ZBX_HOSTNAME
+          value: microservices
+        - name: ZBX_PASSIVE_ALLOW
+          value: "true"
+        - name: ZBX_ACTIVE_ALLOW
+          value: "true"
+        - name: ZBX_SERVER_PORT
+          value: "10051"
+        - name: ZBX_LISTEN_PORT
+          value: "10050"
+        - name: ZBX_LOGTYPE
+          value: "console"
+        ports:
+        - containerPort: 10050
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+        securityContext:
+          runAsUser: 0
+          privileged: true
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: sys
+        hostPath:
+          path: /sys
