@@ -65,30 +65,60 @@ namespace OrderApi.Services
         private Pedido? ConsumirPedidoPorIdDaFila(Guid id, string queueName)
         {
             BasicGetResult result;
-            int maxTries = 100; // Limite para evitar loop infinito
+            var mensagensTemporarias = new List<(ulong DeliveryTag, string Json)>();
+            Pedido? pedidoEncontrado = null;
 
-            for (int i = 0; i < maxTries; i++)
+            try
             {
-                result = _channel.BasicGet(queue: queueName, autoAck: false);
-
-                if (result == null)
-                    return null; // Nenhuma mensagem na fila
-
-                var body = result.Body.ToArray();
-                var json = Encoding.UTF8.GetString(body);
-
-                var pedido = JsonSerializer.Deserialize<Pedido>(json);
-
-                if (pedido != null && pedido.Id == id)
+                // Processa todas as mensagens da fila até encontrar o pedido ou a fila estar vazia
+                while (true)
                 {
-                    _channel.BasicAck(result.DeliveryTag, false);
-                    return pedido;
+                    result = _channel.BasicGet(queue: queueName, autoAck: false);
+
+                    if (result == null)
+                        break; // Nenhuma mensagem na fila
+
+                    var body = result.Body.ToArray();
+                    var json = Encoding.UTF8.GetString(body);
+
+                    var pedido = JsonSerializer.Deserialize<Pedido>(json);
+
+                    if (pedido != null && pedido.Id == id)
+                    {
+                        // Encontrou o pedido! Remove da fila
+                        _channel.BasicAck(result.DeliveryTag, false);
+                        pedidoEncontrado = pedido;
+                    }
+                    else
+                    {
+                        // Guarda a mensagem temporariamente para re-enfileirar depois
+                        mensagensTemporarias.Add((result.DeliveryTag, json));
+                    }
                 }
-                else
+
+                // Re-enfileira todas as mensagens que não foram removidas, mantendo a ordem original
+                foreach (var (deliveryTag, json) in mensagensTemporarias)
                 {
-                    // Re-enfileira a mensagem para não perder
-                    _channel.BasicNack(result.DeliveryTag, false, true);
+                    // Primeiro faz ACK da mensagem original
+                    _channel.BasicAck(deliveryTag, false);
+                    
+                    // Depois re-publica na fila para manter a ordem
+                    var bodyBytes = Encoding.UTF8.GetBytes(json);
+                    var properties = _channel.CreateBasicProperties();
+                    properties.Persistent = true;
+                    _channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: bodyBytes);
                 }
+
+                return pedidoEncontrado;
+            }
+            catch (Exception)
+            {
+                // Em caso de erro, re-enfileira todas as mensagens usando NACK
+                foreach (var (deliveryTag, _) in mensagensTemporarias)
+                {
+                    _channel.BasicNack(deliveryTag, false, true);
+                }
+                throw;
             }
 
             return null; // Pedido não encontrado na fila

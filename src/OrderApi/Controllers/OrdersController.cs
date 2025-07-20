@@ -30,16 +30,31 @@ namespace OrderApi.Controllers
             decimal total = 0;
             var pedidoId = Guid.NewGuid();
 
+            // Primeiro, verificar se todos os produtos existem e têm estoque suficiente
             foreach (var itemDto in dto.Itens)
             {
                 var produto = await _menuService.GetProdutoByIdAsync(itemDto.ProdutoId);
                 if (produto == null)
-                    return BadRequest($"Produto {itemDto.ProdutoId} n�o encontrado no card�pio.");
+                    return BadRequest($"Produto {itemDto.ProdutoId} não encontrado no cardápio.");
 
+                if (!produto.Disponivel)
+                    return BadRequest($"Produto '{produto.Nome}' não está disponível no momento.");
+
+                if (produto.Quantidade < itemDto.Quantidade)
+                    return BadRequest($"Estoque insuficiente para '{produto.Nome}'. Disponível: {produto.Quantidade}, Solicitado: {itemDto.Quantidade}");
+            }
+
+            // Se chegou até aqui, todos os produtos têm estoque suficiente
+            // Agora vamos criar o pedido e atualizar o estoque
+            foreach (var itemDto in dto.Itens)
+            {
+                var produto = await _menuService.GetProdutoByIdAsync(itemDto.ProdutoId);
+                
                 var itemPedido = new ItemPedido
                 {
                     Id = Guid.NewGuid(),
                     PedidoId = pedidoId,
+                    ProdutoId = itemDto.ProdutoId, // Armazenar o ID do produto
                     Produto = produto.Nome,
                     Quantidade = itemDto.Quantidade,
                     PrecoUnitario = produto.Preco
@@ -47,6 +62,15 @@ namespace OrderApi.Controllers
 
                 itens.Add(itemPedido);
                 total += itemPedido.Quantidade * itemPedido.PrecoUnitario;
+
+                // Atualizar estoque no MenuAPI
+                var novoEstoque = produto.Quantidade - itemDto.Quantidade;
+                var estoqueAtualizado = await _menuService.AtualizarEstoqueAsync(itemDto.ProdutoId, novoEstoque);
+                
+                if (!estoqueAtualizado)
+                {
+                    return StatusCode(500, $"Erro ao atualizar estoque do produto '{produto.Nome}'");
+                }
             }
 
             var pedido = new Pedido
@@ -113,6 +137,20 @@ namespace OrderApi.Controllers
             // 2. Se estava na fila, atualiza status no banco para cancelado
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound("Pedido não encontrado no banco de dados.");
+
+            // 3. Reverter estoque dos produtos
+            var itens = await _context.ItemPedido.Where(i => i.PedidoId == id).ToListAsync();
+            foreach (var item in itens)
+            {
+                // Buscar o produto atual no MenuAPI
+                var produtoAtual = await _menuService.GetProdutoByIdAsync(item.ProdutoId);
+                if (produtoAtual != null)
+                {
+                    // Reverter a quantidade ao estoque
+                    var novoEstoque = produtoAtual.Quantidade + item.Quantidade;
+                    await _menuService.AtualizarEstoqueAsync(item.ProdutoId, novoEstoque);
+                }
+            }
 
             pedido.Status = StatusPedido.Cancelado;
             pedido.Justificativa = justificativa;

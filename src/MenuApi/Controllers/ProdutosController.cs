@@ -33,7 +33,7 @@ namespace MenuService.Controllers
                 return BadRequest(ModelState);
 
             if (!Enum.TryParse<TipoProduto>(dto.Tipo, true, out var tipoProduto))
-                return BadRequest("Tipo de produto inválido. Use: Lanche, Bebida ou Sobremesa.");
+                return BadRequest("Tipo de produto invï¿½lido. Use: Lanche, Bebida ou Sobremesa.");
 
             if (dto.Quantidade < 1)
                 dto.Disponivel = false;
@@ -80,8 +80,12 @@ namespace MenuService.Controllers
             if (dto.Quantidade.HasValue)
             {
                 produto.Quantidade = (int)dto.Quantidade;
-                if (dto.Quantidade < 1)
-                    dto.Disponivel = false;
+                // Se nÃ£o foi enviado um valor especÃ­fico para Disponivel, 
+                // determinar automaticamente baseado na quantidade
+                if (!dto.Disponivel.HasValue)
+                {
+                    produto.Disponivel = dto.Quantidade >= 1;
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(dto.Nome))
@@ -97,7 +101,7 @@ namespace MenuService.Controllers
             if (!string.IsNullOrWhiteSpace(dto.Tipo))
             {
                 if (!Enum.TryParse<TipoProduto>(dto.Tipo, true, out var tipoProduto))
-                    return BadRequest("Tipo de produto inválido. Use: Lanche, Bebida ou Sobremesa.");
+                    return BadRequest("Tipo de produto invï¿½lido. Use: Lanche, Bebida ou Sobremesa.");
 
                 produto.Tipo = tipoProduto;
             }
@@ -135,7 +139,7 @@ namespace MenuService.Controllers
 
             if (!Enum.TryParse<TipoProduto>(tipo, true, out var tipoProduto))
             {
-                return BadRequest("Tipo de produto inválido. Use: Lanche, Bebida ou Sobremesa.");
+                return BadRequest("Tipo de produto invï¿½lido. Use: Lanche, Bebida ou Sobremesa.");
             }
 
             var produtosFiltrados = await _context.Produtos
