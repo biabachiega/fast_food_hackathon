@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: identityapi
-        image: fasttechfood-identityapi:latest
+        image: identityapi:v1.0.1
         ports:
         - containerPort: 8080
         env:

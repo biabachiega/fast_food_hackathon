@@ -22,6 +22,7 @@ namespace IdentityService.Controllers
 
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var usuarios = await _context.Usuarios.ToListAsync();
@@ -29,6 +30,8 @@ namespace IdentityService.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateUsuarioDto dto)
         {
 
@@ -60,6 +63,8 @@ namespace IdentityService.Controllers
         }
 
         [HttpGet("getById/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
@@ -79,6 +84,8 @@ namespace IdentityService.Controllers
         }
 
         [HttpPut("updateById/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(Guid id, [FromBody] AtualizarUsuarioDto dto)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
@@ -105,10 +112,12 @@ namespace IdentityService.Controllers
                 usuario.SenhaHash = _passwordHasher.HashPassword(usuario, dto.Senha);
 
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(new { message = "Usuário atualizado com sucesso.", usuarioId = id });
         }
 
         [HttpDelete("deleteById/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteUsuario(Guid id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
@@ -119,7 +128,7 @@ namespace IdentityService.Controllers
             _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { message = "Usuário removido com sucesso.", usuarioId = id });
         }
 
     }

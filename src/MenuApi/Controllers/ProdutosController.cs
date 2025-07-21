@@ -20,6 +20,7 @@ namespace MenuService.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var produtos = await _context.Produtos.ToListAsync();
@@ -27,6 +28,8 @@ namespace MenuService.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateProdutoDto dto)
         {
             if (!ModelState.IsValid)
@@ -60,6 +63,8 @@ namespace MenuService.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var produto = await _context.Produtos.FindAsync(id);
@@ -70,6 +75,9 @@ namespace MenuService.Controllers
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateById(Guid id, [FromBody] AtualizarProdutoDto dto)
         {
             var produto = await _context.Produtos.FindAsync(id);
@@ -109,10 +117,12 @@ namespace MenuService.Controllers
 
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { message = "Produto atualizado com sucesso.", produtoId = id });
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteById(Guid id)
         {
             var produto = await _context.Produtos.FindAsync(id);
@@ -123,10 +133,12 @@ namespace MenuService.Controllers
             _context.Produtos.Remove(produto);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { message = "Produto removido com sucesso.", produtoId = id });
         }
 
         [HttpGet("filterByType")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetByTipo([FromQuery] string tipo)
         {
             if (string.IsNullOrWhiteSpace(tipo))

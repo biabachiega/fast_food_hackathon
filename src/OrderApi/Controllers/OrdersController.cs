@@ -24,6 +24,9 @@ namespace OrderApi.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CriarPedido([FromHeader] Guid clientId,[FromBody] PedidoDto dto)
         {
             var itens = new List<ItemPedido>();
@@ -85,6 +88,7 @@ namespace OrderApi.Controllers
         }
 
         [HttpGet("byStatus")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetByStatus([FromHeader] StatusPedido status)
         {
             var pendentes = await _context.Pedidos.Where(p => p.Status == status).ToListAsync();
@@ -108,6 +112,9 @@ namespace OrderApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> RemoverPedido(Guid id, [FromBody] string justificativa)
         {
             if (string.IsNullOrWhiteSpace(justificativa))
@@ -144,6 +151,8 @@ namespace OrderApi.Controllers
         }
 
         [HttpPost("{id}/aceitar")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> AceitarPedido(Guid id)
         {
             var pedidoRabbit = _rabbitMqService.ConsumirPedidoPorId(id);
@@ -162,6 +171,9 @@ namespace OrderApi.Controllers
         }
 
         [HttpPost("{id}/recusar")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> RecusarPedido(Guid id, [FromBody] string justificativa)
         {
             if (string.IsNullOrWhiteSpace(justificativa))
@@ -195,6 +207,8 @@ namespace OrderApi.Controllers
         }
 
         [HttpPut("{id}/finalizar")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> FinalizarPedido(Guid id)
         {
             var pedidoRabbit = _rabbitMqService.ConsumirPedidoAceitoPorId(id);

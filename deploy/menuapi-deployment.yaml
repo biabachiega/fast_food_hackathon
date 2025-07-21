@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: menuapi
-        image: fasttechfood-menuapi:latest
+        image: menuapi:v1.0.1
         ports:
         - containerPort: 8080
         env:

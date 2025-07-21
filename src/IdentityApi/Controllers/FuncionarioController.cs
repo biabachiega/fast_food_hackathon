@@ -23,6 +23,7 @@ namespace IdentityService.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var funcionarios = await _context.Funcionarios.ToListAsync();
@@ -30,6 +31,9 @@ namespace IdentityService.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Create([FromBody] CreateFuncionarioDto dto)
         {
 
@@ -63,6 +67,8 @@ namespace IdentityService.Controllers
         }
 
         [HttpGet("getById/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var funcionario = await _context.Funcionarios.FindAsync(id);
@@ -80,6 +86,10 @@ namespace IdentityService.Controllers
         }
 
         [HttpPut("updateById/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Update(Guid id, [FromBody] AtualizarFuncionarioDto dto)
         {
 
@@ -111,10 +121,12 @@ namespace IdentityService.Controllers
                 funcionario.SenhaHash = _passwordHasher.HashPassword(funcionario, dto.Senha);
 
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(new { message = "Funcionário atualizado com sucesso.", funcionarioId = id });
         }
 
         [HttpDelete("deleteById/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteFuncionario(Guid id)
         {
             var funcionario = await _context.Funcionarios.FindAsync(id);
@@ -125,7 +137,7 @@ namespace IdentityService.Controllers
             _context.Funcionarios.Remove(funcionario);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { message = "Funcionário removido com sucesso.", funcionarioId = id });
         }
 
 
